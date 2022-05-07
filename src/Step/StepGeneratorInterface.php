@@ -32,58 +32,22 @@
  *
  */
 
-namespace Ikarus\SPS\Workflow;
+namespace Ikarus\SPS\Workflow\Step;
 
 
-use Ikarus\SPS\Register\MemoryRegisterInterface;
-use Ikarus\SPS\Workflow\Context\WorkflowContextInterface;
-use Ikarus\SPS\Workflow\Step\StepGeneratorInterface;
-use Ikarus\SPS\Workflow\Step\StepInterface;
-
-interface WorkflowManagerInterface
+interface StepGeneratorInterface
 {
 	/**
-	 * @param StepInterface|StepGeneratorInterface $step
-	 * @return static
-	 */
-	public function addStep($step);
-
-	/**
-	 * @param int|string|StepInterface $step
-	 * @return static
-	 */
-	public function removeStep($step);
-
-	/**
-	 * Indicates, that the workflow must repeat itself after processing the last step in chain.
+	 * The step number
 	 *
-	 * @return bool
+	 * @return int
 	 */
-	public function isLoopWorkflow(): bool;
+	public function getStep(): int;
 
 	/**
-	 * @return StepInterface|null
-	 */
-	public function getCurrentStep(): ?StepInterface;
-
-	/**
-	 * @param int|string $step
-	 * @return StepInterface|null
-	 */
-	public function getStep($step): ?StepInterface;
-
-	/**
+	 * Creates the step on demand.
 	 *
+	 * @return StepInterface
 	 */
-	public function reset();
-
-	/**
-	 * @return WorkflowContextInterface
-	 */
-	public function getWorkflowProcessContext(): WorkflowContextInterface;
-
-	/**
-	 * @param MemoryRegisterInterface|null $register
-	 */
-	public function process(MemoryRegisterInterface $register = NULL);
+	public function generateStep(): StepInterface;
 }

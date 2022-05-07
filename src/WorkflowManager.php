@@ -41,6 +41,7 @@ use Ikarus\SPS\Workflow\Context\_StepTreeItem;
 use Ikarus\SPS\Workflow\Context\WorkflowContextInterface;
 use Ikarus\SPS\Workflow\Step\AbstractStep;
 use Ikarus\SPS\Workflow\Step\StepAwareInterface;
+use Ikarus\SPS\Workflow\Step\StepGeneratorInterface;
 use Ikarus\SPS\Workflow\Step\StepInterface;
 use TASoft\Util\ValueInjector;
 
@@ -63,17 +64,19 @@ class WorkflowManager implements WorkflowManagerInterface
 	/**
 	 * @inheritDoc
 	 */
-	public function addStep(StepInterface $step)
+	public function addStep($step)
 	{
-		if($step instanceof AbstractStep) {
-			$vi = new ValueInjector($step, AbstractStep::class);
-			if(NULL === $vi->step)
-				$vi->step = $this->_step_count;
-		}
-		$this->steps[ $step->getStep() ] = $step;
-		$this->_step_count = max($this->_step_count, $step->getStep()) + 1;
+		if($step instanceof StepInterface || $step instanceof StepGeneratorInterface) {
+			if($step instanceof AbstractStep) {
+				$vi = new ValueInjector($step, AbstractStep::class);
+				if(NULL === $vi->step)
+					$vi->step = $this->_step_count;
+			}
+			$this->steps[  $step->getStep() ] = $step;
+			$this->_step_count = max($this->_step_count, $step->getStep()) + 1;
 
-		$this->_step_tree = [];
+			$this->_step_tree = [];
+		}
 		return $this;
 	}
 
@@ -84,7 +87,7 @@ class WorkflowManager implements WorkflowManagerInterface
 	{
 		if(is_int($step))
 			unset($this->steps[$step]);
-		elseif($step instanceof StepInterface) {
+		elseif($step instanceof StepInterface || $step instanceof StepGeneratorInterface) {
 			unset($this->steps[$step->getStep()]);
 		} elseif(is_string($step)) {
 			foreach($this->steps as $s) {
@@ -127,7 +130,7 @@ class WorkflowManager implements WorkflowManagerInterface
 				$ti = new _StepTreeItem();
 				if($last)
 					$last->nextTreeItem = $ti;
-				$ti->step = $step;
+				$ti->step = $step instanceof StepGeneratorInterface ? $step->generateStep() : $step;
 				$last = $tree[] = $ti;
 			}
 
