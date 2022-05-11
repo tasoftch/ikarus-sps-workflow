@@ -32,7 +32,7 @@
  *
  */
 
-namespace Ikarus\SPS\Workflow\Compiler;
+namespace Ikarus\SPS\Workflow\Context;
 
 
 interface PrecompilerContextInterface

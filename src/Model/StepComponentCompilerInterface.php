@@ -35,19 +35,14 @@
 namespace Ikarus\SPS\Workflow\Model;
 
 
-use Ikarus\SPS\Workflow\Context\PrecompilerContextInterface;
+use Closure;
 
-interface StepComponentPrecompilerInterface
+interface StepComponentCompilerInterface
 {
 	/**
-	 * @param PrecompilerContextInterface $context
-	 * @param int $options
-	 * @param array $userData
-	 * @return bool
+	 * Returns a closure that can be exported as standalone function
+	 *
+	 * @return Closure
 	 */
-	public function precompile(
-		PrecompilerContextInterface $context,
-		int $options,
-		array $userData
-	): bool;
+	public function getExecutable(): Closure;
 }

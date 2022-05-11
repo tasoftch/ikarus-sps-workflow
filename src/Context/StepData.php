@@ -32,22 +32,51 @@
  *
  */
 
-namespace Ikarus\SPS\Workflow\Model;
+namespace Ikarus\SPS\Workflow\Context;
 
 
-use Ikarus\SPS\Workflow\Context\PrecompilerContextInterface;
+use ArrayAccess;
+use Countable;
 
-interface StepComponentPrecompilerInterface
+class StepData implements ArrayAccess, Countable
 {
+	private $data = [];
+
 	/**
-	 * @param PrecompilerContextInterface $context
-	 * @param int $options
-	 * @param array $userData
-	 * @return bool
+	 * StepData constructor.
+	 * @param array|null $data
 	 */
-	public function precompile(
-		PrecompilerContextInterface $context,
-		int $options,
-		array $userData
-	): bool;
+	public function __construct(array $data = NULL)
+	{
+		if($data) {
+			foreach($data as $k => $v)
+				$this->data[$k] = $v;
+		}
+	}
+
+
+	public function offsetExists($offset)
+	{
+		return isset($this->data[$offset]);
+	}
+
+	public function &offsetGet($offset)
+	{
+		return $this->data[$offset];
+	}
+
+	public function offsetSet($offset, $value)
+	{
+		$this->data[$offset] = $value;
+	}
+
+	public function offsetUnset($offset)
+	{
+		unset($this->data[$offset]);
+	}
+
+	public function count()
+	{
+		return count($this->data);
+	}
 }
