@@ -37,8 +37,9 @@ namespace Ikarus\SPS\Workflow\Context;
 
 use ArrayAccess;
 use Countable;
+use Serializable;
 
-class StepData implements ArrayAccess, Countable
+class StepData implements ArrayAccess, Countable, Serializable
 {
 	private $data = [];
 
@@ -78,5 +79,19 @@ class StepData implements ArrayAccess, Countable
 	public function count()
 	{
 		return count($this->data);
+	}
+
+	public function serialize()
+	{
+		return serialize($this->data);
+	}
+
+	public function unserialize($serialized)
+	{
+		$d = unserialize($serialized);
+		if(is_array($d) && $d) {
+			foreach($d as $k => $v)
+				$this->data[$k] = $v;
+		}
 	}
 }
