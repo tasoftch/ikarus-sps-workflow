@@ -35,13 +35,21 @@
 namespace Ikarus\SPS\Workflow\Compiler;
 
 
+use Ikarus\SPS\Workflow\Compiler\Design\Parser\WorkflowDesignParserInterface;
+use Ikarus\SPS\Workflow\Compiler\Design\StepDesignInterface;
 use Ikarus\SPS\Workflow\Compiler\Provider\StepComponentProviderInterface;
 use Ikarus\SPS\Workflow\Compiler\Provider\WorkflowProviderInterface;
+use Ikarus\SPS\Workflow\Exception\ComponentNotFoundException;
+use Ikarus\SPS\Workflow\Model\StepComponentInterface;
 
-class AbstractWorkflowCompiler implements WorkflowCompilerInterface
+abstract class AbstractWorkflowCompiler implements WorkflowCompilerInterface
 {
 	/** @var StepComponentProviderInterface */
 	private $stepComponentProvider;
+	/** @var WorkflowDesignParserInterface */
+	private $designParser;
+
+	protected $usedComponents = [];
 
 	/**
 	 * @return StepComponentProviderInterface
@@ -62,10 +70,62 @@ class AbstractWorkflowCompiler implements WorkflowCompilerInterface
 	}
 
 	/**
-	 * @inheritDoc
+	 * @return WorkflowDesignParserInterface
 	 */
-	public function compile(WorkflowProviderInterface $provider)
+	public function getDesignParser(): WorkflowDesignParserInterface
 	{
-		// TODO: Implement compile() method.
+		return $this->designParser;
+	}
+
+	/**
+	 * @param WorkflowDesignParserInterface $designParser
+	 * @return AbstractWorkflowCompiler
+	 */
+	public function setDesignParser(WorkflowDesignParserInterface $designParser): AbstractWorkflowCompiler
+	{
+		$this->designParser = $designParser;
+		return $this;
+	}
+
+	/**
+	 * @param StepComponentInterface $component
+	 * @param StepDesignInterface $forStep
+	 */
+	protected function inspectStepComponent(StepComponentInterface $component, StepDesignInterface $forStep) {
+	}
+
+	/**
+	 * @param WorkflowProviderInterface $provider
+	 * @return array
+	 */
+	protected function prepareFromProvider(WorkflowProviderInterface $provider): array
+	{
+		$components = [];
+		$getComponent = function($name) use (&$components) {
+			if(!isset($components[$name])) {
+				$c = $this->getStepComponentProvider()->getStepComponent($name);
+				if(!$c)
+					throw (new ComponentNotFoundException("Component $name not found"))->setComponentName($name);
+				$components[$name] = $c;
+			}
+			return $components[$name];
+		};
+
+		$workflows = [];
+		foreach($provider->yieldWorkflow($name, $design, $options) as $r) {
+			$design = $this->getDesignParser()->parseDesign($design, $name, $options);
+
+			$steps = [];
+			foreach($design->getSteps() as $step) {
+				$cmp = $getComponent( $step->getComponentName() );
+				$this->inspectStepComponent($cmp, $step);
+
+				$steps[] = $step;
+			}
+			$workflows[$name] = [$options, $steps];
+		}
+
+		$this->usedComponents = $components;
+		return $workflows;
 	}
 }

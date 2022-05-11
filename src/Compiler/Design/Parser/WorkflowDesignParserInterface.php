@@ -32,18 +32,20 @@
  *
  */
 
-namespace Ikarus\SPS\Workflow\Compiler\Provider;
+namespace Ikarus\SPS\Workflow\Compiler\Design\Parser;
 
 
-use Generator;
+use Ikarus\SPS\Workflow\Compiler\Design\WorkflowDesignInterface;
 
-interface WorkflowProviderInterface
+interface WorkflowDesignParserInterface
 {
 	/**
-	 * @param string $name
+	 * Parses a serialized design into a compilable version of an Ikarus SPS workflow.
+	 *
 	 * @param scalar $design
-	 * @param int $options
-	 * @return Generator
+	 * @param string|null $name
+	 * @param int|null $options
+	 * @return WorkflowDesignInterface|null
 	 */
-	public function yieldWorkflow(&$name, &$design, &$options);
+	public function parseDesign($design, ?string $name, ?int $options): ?WorkflowDesignInterface;
 }

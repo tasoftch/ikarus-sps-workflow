@@ -32,18 +32,16 @@
  *
  */
 
-namespace Ikarus\SPS\Workflow\Compiler\Provider;
+namespace Ikarus\SPS\Workflow\Exception;
 
 
-use Generator;
+use RuntimeException;
+use Throwable;
 
-interface WorkflowProviderInterface
+class CompilationException extends RuntimeException
 {
-	/**
-	 * @param string $name
-	 * @param scalar $design
-	 * @param int $options
-	 * @return Generator
-	 */
-	public function yieldWorkflow(&$name, &$design, &$options);
+	public function __construct($message = "", $code = 0, Throwable $previous = null, ...$args)
+	{
+		parent::__construct(vsprintf($message, $args), $code, $previous);
+	}
 }

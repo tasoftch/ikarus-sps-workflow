@@ -32,18 +32,29 @@
  *
  */
 
-namespace Ikarus\SPS\Workflow\Compiler\Provider;
+namespace Ikarus\SPS\Workflow\Exception;
 
 
-use Generator;
-
-interface WorkflowProviderInterface
+class ComponentNotFoundException extends CompilationException
 {
+	/** @var string */
+	private $componentName;
+
 	/**
-	 * @param string $name
-	 * @param scalar $design
-	 * @param int $options
-	 * @return Generator
+	 * @return string
 	 */
-	public function yieldWorkflow(&$name, &$design, &$options);
+	public function getComponentName(): string
+	{
+		return $this->componentName;
+	}
+
+	/**
+	 * @param string $componentName
+	 * @return ComponentNotFoundException
+	 */
+	public function setComponentName(string $componentName): ComponentNotFoundException
+	{
+		$this->componentName = $componentName;
+		return $this;
+	}
 }

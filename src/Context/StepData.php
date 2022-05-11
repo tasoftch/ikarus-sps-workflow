@@ -94,4 +94,8 @@ class StepData implements ArrayAccess, Countable, Serializable
 				$this->data[$k] = $v;
 		}
 	}
+
+	public function getData(): array {
+		return $this->data;
+	}
 }
