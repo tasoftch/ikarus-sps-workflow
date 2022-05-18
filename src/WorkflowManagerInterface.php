@@ -36,6 +36,7 @@ namespace Ikarus\SPS\Workflow;
 
 
 use Ikarus\SPS\Register\MemoryRegisterInterface;
+use Ikarus\SPS\Workflow\Context\StepData;
 use Ikarus\SPS\Workflow\Context\WorkflowContextInterface;
 use Ikarus\SPS\Workflow\Step\StepGeneratorInterface;
 use Ikarus\SPS\Workflow\Step\StepInterface;
@@ -44,9 +45,10 @@ interface WorkflowManagerInterface
 {
 	/**
 	 * @param StepInterface|StepGeneratorInterface $step
+	 * @param StepData|null $stepData
 	 * @return static
 	 */
-	public function addStep($step);
+	public function addStep($step, StepData $stepData = NULL);
 
 	/**
 	 * @param int|string|StepInterface $step

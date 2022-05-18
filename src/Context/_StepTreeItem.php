@@ -42,6 +42,9 @@ class _StepTreeItem
 	/** @var StepInterface */
 	public $step;
 
+	/** @var StepData|null */
+	public $stepData;
+
 	/** @var _StepTreeItem */
 	public $nextTreeItem;
 

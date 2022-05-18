@@ -38,6 +38,7 @@ namespace Ikarus\SPS\Workflow;
 use Ikarus\SPS\Register\MemoryRegisterInterface;
 use Ikarus\SPS\Workflow\Context\_InternalWorkflowContext;
 use Ikarus\SPS\Workflow\Context\_StepTreeItem;
+use Ikarus\SPS\Workflow\Context\StepData;
 use Ikarus\SPS\Workflow\Context\WorkflowContextInterface;
 use Ikarus\SPS\Workflow\Step\AbstractStep;
 use Ikarus\SPS\Workflow\Step\StepAwareInterface;
@@ -53,6 +54,7 @@ class WorkflowManager implements WorkflowManagerInterface
 	private $_step_count=1;
 	/** @var _StepTreeItem[] */
 	private $_step_tree = [];
+	private $stepDataObjects = [];
 
 	/** @var WorkflowContextInterface */
 	private $processContext;
@@ -65,7 +67,7 @@ class WorkflowManager implements WorkflowManagerInterface
 	/**
 	 * @inheritDoc
 	 */
-	public function addStep($step)
+	public function addStep($step, StepData $stepData = NULL)
 	{
 		if($step instanceof StepInterface || $step instanceof StepGeneratorInterface) {
 			if($step instanceof AbstractStep) {
@@ -75,6 +77,9 @@ class WorkflowManager implements WorkflowManagerInterface
 			}
 			$this->steps[  $step->getStep() ] = $step;
 			$this->_step_count = max($this->_step_count, $step->getStep()) + 1;
+
+			if($stepData)
+				$this->stepDataObjects[$step->getStep()] = $stepData;
 
 			$this->_step_tree = [];
 		}
@@ -132,6 +137,8 @@ class WorkflowManager implements WorkflowManagerInterface
 				if($last)
 					$last->nextTreeItem = $ti;
 				$ti->step = $step instanceof StepGeneratorInterface ? $step->generateStep() : $step;
+				if($sd = $this->stepDataObjects[$stepIdx] ?? 0)
+					$ti->stepData = $sd;
 				$last = $tree[] = $ti;
 			}
 
@@ -277,6 +284,7 @@ class WorkflowManager implements WorkflowManagerInterface
 			$ctx->setValue("NS", true);
 			$ctx->resetCustomValues();
 
+			$ctx->setStepData( $this->stepDataObjects[ $step->getStep() ] ?? NULL );
 			$step->process($ctx, $ctx->getMemoryRegister());
 
 			if($ns = $ctx->getValue("NS")) {

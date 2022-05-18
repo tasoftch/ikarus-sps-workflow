@@ -45,6 +45,8 @@ class _InternalWorkflowContext implements WorkflowContextInterface
 	private $data;
 	private $manager;
 	private $mr;
+	/** @var StepData|null */
+	private $stepData;
 
 	/**
 	 * _InternalWotkflowContext constructor.
@@ -53,6 +55,11 @@ class _InternalWorkflowContext implements WorkflowContextInterface
 	public function __construct(WorkflowManagerInterface $manager)
 	{
 		$this->manager = new ValueInjector( $manager, WorkflowManager::class );
+	}
+
+	public function getStepData(): ?StepData
+	{
+		return $this->stepData;
 	}
 
 
@@ -126,6 +133,16 @@ class _InternalWorkflowContext implements WorkflowContextInterface
 	public function setMemoryRegister(MemoryRegisterInterface $mr): _InternalWorkflowContext
 	{
 		$this->mr = $mr;
+		return $this;
+	}
+
+	/**
+	 * @param StepData|null $stepData
+	 * @return _InternalWorkflowContext
+	 */
+	public function setStepData(?StepData $stepData): _InternalWorkflowContext
+	{
+		$this->stepData = $stepData;
 		return $this;
 	}
 }

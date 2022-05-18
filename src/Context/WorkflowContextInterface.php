@@ -52,6 +52,14 @@ interface WorkflowContextInterface
 	public function getValue(string $key);
 
 	/**
+	 * If available, this method returns the step data from creating the step.
+	 * It may be changed and remains for ever.
+	 *
+	 * @return StepData|null
+	 */
+	public function getStepData(): ?StepData;
+
+	/**
 	 * Normally each step gets called once during workflow process.
 	 * If the step requires a repetition next cycle it can call this method.
 	 */
