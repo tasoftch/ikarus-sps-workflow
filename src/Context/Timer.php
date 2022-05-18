@@ -32,20 +32,62 @@
  *
  */
 
-namespace Ikarus\SPS\Workflow\Step;
+namespace Ikarus\SPS\Workflow\Context;
 
 
-use Ikarus\SPS\Register\MemoryRegisterInterface;
-use Ikarus\SPS\Workflow\Context\WorkflowContextInterface;
-
-class RepeatWholeWorkflowStep extends AbstractStep
+class Timer
 {
+	const TIMER_UNIT_MICRO_SECONDS = -2;
+	const TIMER_UNIT_MILLI_SECONDS = -1;
+	const TIMER_UNIT_SECONDS = 0;
+	const TIMER_UNIT_MINUTES = 1;
+
+	private $timeout = 0;
+	private $timer = 0;
+
 	/**
-	 * @inheritDoc
+	 * Timer constructor.
+	 * @param int $timeout
+	 * @param int $unit
+	 * @param bool $enable
 	 */
-	public function process(WorkflowContextInterface $context, ?MemoryRegisterInterface $memoryRegister)
+	public function __construct(int $timeout = 0, int $unit = self::TIMER_UNIT_SECONDS, bool $enable = true)
 	{
-		$context->setValue("@repeat", 1);
-		$context->continueNextStepInCurrentCycle();
+		if($timeout<=0)
+			$this->timeout = 0;
+		else {
+			switch ($unit) {
+				case static::TIMER_UNIT_MICRO_SECONDS:
+					$timeout /= 1000000;
+					break;
+				case static::TIMER_UNIT_MILLI_SECONDS:
+					$timeout /= 1000;
+					break;
+				case static::TIMER_UNIT_MINUTES:
+					$timeout *= 60;
+					break;
+			}
+			$this->timeout = $timeout;
+		}
+		if($enable)
+			$this->reset();
+	}
+
+	/**
+	 * Resets the timer
+	 */
+	public function reset() {
+		if($this->timeout) {
+			$this->timer = microtime(true) + $this->timeout;
+		} else {
+			$this->timer = -1;
+		}
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function isTimeUp(): bool {
+		return microtime(true) > $this->timer;
 	}
 }

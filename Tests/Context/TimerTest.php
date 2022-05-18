@@ -32,20 +32,45 @@
  *
  */
 
-namespace Ikarus\SPS\Workflow\Step;
+namespace Context;
 
+use Ikarus\SPS\Workflow\Context\Timer;
+use PHPUnit\Framework\TestCase;
 
-use Ikarus\SPS\Register\MemoryRegisterInterface;
-use Ikarus\SPS\Workflow\Context\WorkflowContextInterface;
-
-class RepeatWholeWorkflowStep extends AbstractStep
+class TimerTest extends TestCase
 {
-	/**
-	 * @inheritDoc
-	 */
-	public function process(WorkflowContextInterface $context, ?MemoryRegisterInterface $memoryRegister)
-	{
-		$context->setValue("@repeat", 1);
-		$context->continueNextStepInCurrentCycle();
+	public function testNullTimer() {
+		$tm = new Timer();
+
+		$this->assertTrue($tm->isTimeUp());
+	}
+
+	public function testMicroTimer() {
+		$tm = new Timer(100, Timer::TIMER_UNIT_MICRO_SECONDS);
+		$this->assertFalse($tm->isTimeUp());
+		usleep(100);
+		$this->assertTrue($tm->isTimeUp());
+	}
+
+	public function testMillitimer() {
+		$tm = new Timer(100, Timer::TIMER_UNIT_MILLI_SECONDS);
+		$this->assertFalse($tm->isTimeUp());
+		$this->assertFalse($tm->isTimeUp());
+		$this->assertFalse($tm->isTimeUp());
+		$this->assertFalse($tm->isTimeUp());
+		$this->assertFalse($tm->isTimeUp());
+		$this->assertFalse($tm->isTimeUp());
+		$this->assertFalse($tm->isTimeUp());
+		$this->assertFalse($tm->isTimeUp());
+		usleep(100000);
+		$this->assertTrue($tm->isTimeUp());
+	}
+
+	public function testSecondTimer() {
+		$tm = new Timer(1);
+		$ms = microtime(true);
+		while ($tm->isTimeUp() == false) {
+		}
+		$this->assertEquals(1, round(microtime(true) - $ms, 4));
 	}
 }

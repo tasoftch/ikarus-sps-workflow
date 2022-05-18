@@ -35,6 +35,7 @@
 namespace Ikarus\SPS\Workflow;
 
 
+use Countable;
 use Ikarus\SPS\Register\MemoryRegisterInterface;
 use Ikarus\SPS\Workflow\Context\_InternalWorkflowContext;
 use Ikarus\SPS\Workflow\Context\_StepTreeItem;
@@ -47,10 +48,10 @@ use Ikarus\SPS\Workflow\Step\StepInterface;
 use Ikarus\SPS\Workflow\Step\StepResetInterface;
 use TASoft\Util\ValueInjector;
 
-class WorkflowManager implements WorkflowManagerInterface
+class WorkflowManager implements WorkflowManagerInterface, Countable
 {
 	/** @var StepInterface[] */
-	private $steps;
+	private $steps = [];
 	private $_step_count=1;
 	/** @var _StepTreeItem[] */
 	private $_step_tree = [];
@@ -104,6 +105,8 @@ class WorkflowManager implements WorkflowManagerInterface
 			}
 		}
 		$this->_step_tree = [];
+		$this->currentStepItem = NULL;
+
 		return $this;
 	}
 
@@ -143,12 +146,13 @@ class WorkflowManager implements WorkflowManagerInterface
 			}
 
 			$s = reset($tree);
+			if($s) {
+				if($this->isLoopWorkflow() && $last) {
+					$last->nextTreeItem = $s;
+				}
 
-			if($this->isLoopWorkflow() && $last) {
-				$last->nextTreeItem = $s;
+				$this->makeCurrentStep($s);
 			}
-
-			$this->makeCurrentStep($s);
 
 			$this->_step_tree = $tree;
 		}
@@ -177,6 +181,14 @@ class WorkflowManager implements WorkflowManagerInterface
 	public function getCurrentStep(): ?StepInterface
 	{
 		return $this->currentStepItem ? $this->currentStepItem->step : NULL;
+	}
+
+	/**
+	 * @inheritDoc
+	 */
+	public function needsProcess(): bool {
+		$this->_updateStepTree();
+		return $this->currentStepItem ? true : false;
 	}
 
 	/**
@@ -281,13 +293,13 @@ class WorkflowManager implements WorkflowManagerInterface
 
 		repeat:
 		if($step = $this->getCurrentStep()) {
-			$ctx->setValue("NS", true);
 			$ctx->resetCustomValues();
+			$ctx->setValue("@NS", true);
 
 			$ctx->setStepData( $this->stepDataObjects[ $step->getStep() ] ?? NULL );
 			$step->process($ctx, $ctx->getMemoryRegister());
 
-			if($ns = $ctx->getValue("NS")) {
+			if($ns = $ctx->getValue("@NS")) {
 				if($ns === true)
 					$this->_nextStep();
 				elseif($ns instanceof _StepTreeItem) {
@@ -297,11 +309,18 @@ class WorkflowManager implements WorkflowManagerInterface
 
 			if($ctx->getValue("@repeat")) {
 				$this->reset();
+				if($ctx->getValue("@continue"))
+					goto repeat;
 			} elseif($ctx->getValue("@continue")) {
 				goto repeat;
 			} elseif($ctx->getValue("@terminate")) {
 				$this->suspend();
 			}
 		}
+	}
+
+	public function count()
+	{
+		return count($this->steps);
 	}
 }

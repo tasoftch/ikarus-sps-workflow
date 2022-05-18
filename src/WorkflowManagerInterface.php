@@ -64,6 +64,13 @@ interface WorkflowManagerInterface
 	public function isLoopWorkflow(): bool;
 
 	/**
+	 * Returns true if the workflow has any pendent process to complete
+	 *
+	 * @return bool
+	 */
+	public function needsProcess(): bool;
+
+	/**
 	 * @return StepInterface|null
 	 */
 	public function getCurrentStep(): ?StepInterface;

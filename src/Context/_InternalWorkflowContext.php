@@ -42,7 +42,7 @@ use TASoft\Util\ValueInjector;
 
 class _InternalWorkflowContext implements WorkflowContextInterface
 {
-	private $data;
+	private $data = [];
 	private $manager;
 	private $mr;
 	/** @var StepData|null */
@@ -80,7 +80,7 @@ class _InternalWorkflowContext implements WorkflowContextInterface
 	public function getValue(string $key)
 	{
 		if($key[0] == '@')
-			return $this->data[$key];
+			return $this->data[$key] ?? NULL;
 		return $this->data["v$key"] ?? NULL;
 	}
 
@@ -89,7 +89,7 @@ class _InternalWorkflowContext implements WorkflowContextInterface
 	 */
 	public function repeatStep()
 	{
-		$this->data["NS"] = false;
+		$this->data["@NS"] = false;
 	}
 
 	/**
