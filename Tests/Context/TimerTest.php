@@ -73,4 +73,23 @@ class TimerTest extends TestCase
 		}
 		$this->assertEquals(1, round(microtime(true) - $ms, 4));
 	}
+
+	public function testInvalidation() {
+		$tm = new Timer(100, Timer::TIMER_UNIT_MILLI_SECONDS);
+		$this->assertFalse($tm->isTimeUp());
+		$this->assertFalse($tm->isTimeUp());
+		$this->assertFalse($tm->isTimeUp());
+		$this->assertFalse($tm->isTimeUp());
+
+		$tm->invalidate();
+
+		$this->assertTrue($tm->isTimeUp());
+
+		$tm->reset();
+
+		$this->assertFalse($tm->isTimeUp());
+		$this->assertFalse($tm->isTimeUp());
+		$this->assertFalse($tm->isTimeUp());
+		$this->assertFalse($tm->isTimeUp());
+	}
 }

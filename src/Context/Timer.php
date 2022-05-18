@@ -85,6 +85,13 @@ class Timer
 	}
 
 	/**
+	 * Invalidates the timer, so it will always return true from isTimeUp() method.
+	 */
+	public function invalidate() {
+		$this->timer = -1;
+	}
+
+	/**
 	 * @return bool
 	 */
 	public function isTimeUp(): bool {
