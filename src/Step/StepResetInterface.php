@@ -32,53 +32,13 @@
  *
  */
 
-namespace Ikarus\SPS\Workflow\Model;
+namespace Ikarus\SPS\Workflow\Step;
 
 
-use Ikarus\SPS\Workflow\Context\StepData;
-use Ikarus\SPS\Workflow\Step\StepGeneratorInterface;
-use Ikarus\SPS\Workflow\Step\StepInterface;
-
-interface StepComponentInterface
+interface StepResetInterface
 {
-	const OPTION_PROCESS_KICK_START = 1<<0;
-	const OPTION_CIRCULAR_PROCESSING = 1<<1;
-
 	/**
-	 * A uniquely defined name for this component
-	 *
-	 * @return string
+	 * Called every time when the workflow gets reset.
 	 */
-	public function getComponentName(): string;
-
-	/**
-	 * The display name for this component
-	 *
-	 * @return string|null
-	 */
-	public function getLabel(): ?string;
-
-	/**
-	 * A description for this component
-	 *
-	 * @return string|null
-	 */
-	public function getDescription(): ?string;
-
-	/**
-	 * Options for this component
-	 *
-	 * @return int
-	 */
-	public function getOptions(): int;
-
-	/**
-	 * Generates the step configured to the user data.
-	 *
-	 * @param StepData|null $userData
-	 * @param string $stepName
-	 * @param int $step
-	 * @return StepInterface|StepGeneratorInterface
-	 */
-	public function makeStep(?StepData $userData, string $stepName, int $step);
+	public function reset();
 }

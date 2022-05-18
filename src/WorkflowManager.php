@@ -36,13 +36,14 @@ namespace Ikarus\SPS\Workflow;
 
 
 use Ikarus\SPS\Register\MemoryRegisterInterface;
-use Ikarus\SPS\Workflow\Context\_InternalWotkflowContext;
+use Ikarus\SPS\Workflow\Context\_InternalWorkflowContext;
 use Ikarus\SPS\Workflow\Context\_StepTreeItem;
 use Ikarus\SPS\Workflow\Context\WorkflowContextInterface;
 use Ikarus\SPS\Workflow\Step\AbstractStep;
 use Ikarus\SPS\Workflow\Step\StepAwareInterface;
 use Ikarus\SPS\Workflow\Step\StepGeneratorInterface;
 use Ikarus\SPS\Workflow\Step\StepInterface;
+use Ikarus\SPS\Workflow\Step\StepResetInterface;
 use TASoft\Util\ValueInjector;
 
 class WorkflowManager implements WorkflowManagerInterface
@@ -209,6 +210,11 @@ class WorkflowManager implements WorkflowManagerInterface
 	 */
 	public function reset()
 	{
+		array_walk($this->steps, function($s) {
+			if($s instanceof StepResetInterface)
+				$s->reset();
+		});
+
 		$this->_step_tree = NULL;
 		$this->_updateStepTree();
 	}
@@ -231,9 +237,9 @@ class WorkflowManager implements WorkflowManagerInterface
 		return NULL;
 	}
 
-	private function _getWorkflowProcessContext(): _InternalWotkflowContext {
+	private function _getWorkflowProcessContext(): _InternalWorkflowContext {
 		if(!$this->processContext) {
-			$this->processContext = new _InternalWotkflowContext($this);
+			$this->processContext = new _InternalWorkflowContext($this);
 		}
 		return $this->processContext;
 	}

@@ -40,7 +40,7 @@ use Ikarus\SPS\Workflow\WorkflowManager;
 use Ikarus\SPS\Workflow\WorkflowManagerInterface;
 use TASoft\Util\ValueInjector;
 
-class _InternalWotkflowContext implements WorkflowContextInterface
+class _InternalWorkflowContext implements WorkflowContextInterface
 {
 	private $data;
 	private $manager;
@@ -121,9 +121,9 @@ class _InternalWotkflowContext implements WorkflowContextInterface
 
 	/**
 	 * @param MemoryRegisterInterface $mr
-	 * @return _InternalWotkflowContext
+	 * @return _InternalWorkflowContext
 	 */
-	public function setMemoryRegister(MemoryRegisterInterface $mr): _InternalWotkflowContext
+	public function setMemoryRegister(MemoryRegisterInterface $mr): _InternalWorkflowContext
 	{
 		$this->mr = $mr;
 		return $this;
