@@ -37,11 +37,31 @@ namespace Ikarus\SPS\Workflow\Step;
 
 use Ikarus\SPS\Workflow\Context\WorkflowContextInterface;
 
-interface StepResetInterface
+class CallbackResetStep extends CallbackStep implements StepResetInterface
 {
+	/** @var callable */
+	private $resetCallback;
+
 	/**
-	 * Called every time when the workflow gets reset.
-	 * @param WorkflowContextInterface $context
+	 * @return callable
 	 */
-	public function reset(WorkflowContextInterface $context);
+	public function getResetCallback(): callable
+	{
+		return $this->resetCallback;
+	}
+
+	/**
+	 * @param callable $resetCallback
+	 * @return CallbackResetStep
+	 */
+	public function setResetCallback(callable $resetCallback): CallbackResetStep
+	{
+		$this->resetCallback = $resetCallback;
+		return $this;
+	}
+
+	public function reset(WorkflowContextInterface $context)
+	{
+		($this->resetCallback)($context);
+	}
 }

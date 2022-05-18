@@ -210,9 +210,11 @@ class WorkflowManager implements WorkflowManagerInterface
 	 */
 	public function reset()
 	{
-		array_walk($this->steps, function($s) {
+		$ctx = $this->_getWorkflowProcessContext();
+
+		array_walk($this->steps, function($s) use ($ctx) {
 			if($s instanceof StepResetInterface)
-				$s->reset();
+				$s->reset($ctx);
 		});
 
 		$this->_step_tree = NULL;
