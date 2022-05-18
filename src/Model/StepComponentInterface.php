@@ -75,7 +75,9 @@ interface StepComponentInterface
 	 * Generates the step configured to the user data.
 	 *
 	 * @param array $userData
+	 * @param string $stepName
+	 * @param int $step
 	 * @return StepInterface|StepGeneratorInterface
 	 */
-	public function makeStep(array $userData);
+	public function makeStep(array $userData, string $stepName, int $step);
 }
