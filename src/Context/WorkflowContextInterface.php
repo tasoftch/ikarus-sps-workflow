@@ -34,6 +34,8 @@
 
 namespace Ikarus\SPS\Workflow\Context;
 
+use Ikarus\SPS\Register\MemoryRegisterInterface;
+
 interface WorkflowContextInterface
 {
 	/**
@@ -58,6 +60,11 @@ interface WorkflowContextInterface
 	 * @return StepData|null
 	 */
 	public function getStepData(): ?StepData;
+
+	/**
+	 * @return MemoryRegisterInterface|null
+	 */
+	public function getMemoryRegister(): ?MemoryRegisterInterface;
 
 	/**
 	 * Normally each step gets called once during workflow process.
