@@ -35,7 +35,83 @@
 namespace Ikarus\SPS\Workflow\Compiler;
 
 
-class WorkflowPrecompiler
-{
+use Ikarus\SPS\Workflow\Compiler\Provider\WorkflowProviderInterface;
 
+class WorkflowPrecompiler extends AbstractWorkflowCompiler
+{
+	/** @var array */
+	private $problems = [];
+	private $problemCount = 0;
+	private $ignoreWeakProblems = false;
+
+	private $currentStepCompilation;
+
+	public function addProblem($level, $code, $message, $nodeID)
+	{
+		$this->problemCount++;
+		$this->problems[] = [
+			$level, $code ? $code : $this->problemCount, $message, $nodeID == -1 ? $this->currentStepCompilation : $nodeID
+		];
+
+		usort($this->problems, function($a,$b) {
+			$c = $b[0] <=> $a[0];
+			if($c==0)
+				return $b[1] <=> $a[1];
+			return $c;
+		});
+	}
+
+	/**
+	 * @param \Throwable $exception
+	 */
+	protected function addProblemAsException(\Throwable $exception) {
+		$this->addProblem(3, $exception->getCode(), $exception->getMessage(), method_exists($exception, 'getNodeID') ? $exception->getNodeID() : 0);
+	}
+
+	public function getStepID()
+	{
+		return $this->currentStepCompilation;
+	}
+
+	/**
+	 * @param WorkflowProviderInterface $provider
+	 */
+	public function compile(WorkflowProviderInterface $provider) {
+		try {
+			$workflows = $this->prepareFromProvider($provider);
+			print_r($workflows);
+
+		} catch (\Throwable $throwable) {
+			$this->addProblemAsException($throwable);
+		} finally {
+			if($this->ignoreWeakProblems() && $this->problems && $this->problems[0][0] < 3)
+				$this->problems = [];
+		}
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getProblems(): array
+	{
+		return $this->problems;
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function ignoreWeakProblems(): bool
+	{
+		return $this->ignoreWeakProblems;
+	}
+
+	/**
+	 * @param bool $ignoreWeakProblems
+	 * @return static
+	 */
+	public function setIgnoreWeakProblems(bool $ignoreWeakProblems)
+	{
+		$this->ignoreWeakProblems = $ignoreWeakProblems;
+		return $this;
+	}
 }

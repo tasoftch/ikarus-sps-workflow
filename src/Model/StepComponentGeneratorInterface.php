@@ -32,22 +32,22 @@
  *
  */
 
-namespace Ikarus\SPS\Workflow\Compiler;
+namespace Ikarus\SPS\Workflow\Model;
 
 
-use Ikarus\SPS\Workflow\Compiler\Provider\WorkflowProviderInterface;
+use Ikarus\SPS\Workflow\Context\StepData;
+use Ikarus\SPS\Workflow\Step\StepGeneratorInterface;
+use Ikarus\SPS\Workflow\Step\StepInterface;
 
-/**
- * Interface WorkflowCompilerInterface
- *
- * Compiling a workflow means to make the workflow executable in a single php file without any further components.
- *
- * @package Ikarus\SPS\Workflow\Compiler
- */
-interface WorkflowCompilerInterface
+interface StepComponentGeneratorInterface
 {
 	/**
-	 * @param WorkflowProviderInterface $provider
+	 * Generates the step configured to the user data.
+	 *
+	 * @param StepData|null $userData
+	 * @param string $stepName
+	 * @param int $step
+	 * @return StepInterface|StepGeneratorInterface
 	 */
-	public function compile(WorkflowProviderInterface $provider);
+	public function makeStep(?StepData $userData, string $stepName, int $step);
 }
