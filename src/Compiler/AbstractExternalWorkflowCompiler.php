@@ -38,7 +38,6 @@ namespace Ikarus\SPS\Workflow\Compiler;
 use Ikarus\SPS\Workflow\Compiler\Design\StepDesignInterface;
 use Ikarus\SPS\Workflow\Compiler\Provider\WorkflowProviderInterface;
 use Ikarus\SPS\Workflow\Context\StepData;
-use Ikarus\SPS\Workflow\Model\StepComponentCompilerInterface;
 use Ikarus\SPS\Workflow\Model\StepComponentInterface;
 use ReflectionException;
 use ReflectionFunction;
@@ -90,15 +89,6 @@ abstract class AbstractExternalWorkflowCompiler extends AbstractWorkflowCompiler
 	/**
 	 * @inheritDoc
 	 */
-	protected function inspectStepComponent(StepComponentInterface $component, StepDesignInterface $forStep)
-	{
-		if(! $component instanceof StepComponentCompilerInterface)
-			$this->canCompileExternal = false;
-	}
-
-	/**
-	 * @inheritDoc
-	 */
 	protected function prepareFromProvider(WorkflowProviderInterface $provider): array
 	{
 		$this->canCompileExternal = true;
@@ -106,13 +96,12 @@ abstract class AbstractExternalWorkflowCompiler extends AbstractWorkflowCompiler
 	}
 
 	/**
-	 * @param StepComponentCompilerInterface $component
+	 * @param StepComponentInterface $component
 	 * @return string|null
 	 */
-	protected function exportExternalCodeForComponent(StepComponentCompilerInterface $component): ?string {
-		$cl = $component->getExecutable();
+	protected function exportExternalCodeForComponent(StepComponentInterface $component): ?string {
 		try {
-			$ref = new ReflectionFunction($cl);
+			$ref = new \ReflectionClass( get_class($component) );
 		} catch (ReflectionException $e) {
 			trigger_error($e->getMessage(), E_USER_WARNING);
 			return NULL;
@@ -148,7 +137,7 @@ abstract class AbstractExternalWorkflowCompiler extends AbstractWorkflowCompiler
 				continue;
 			}
 
-			if($s == 2 && $token[0] == T_STRING && strtolower($token[1]) == 'getexecutable') {
+			if($s == 2 && $token[0] == T_STRING && strtolower($token[1]) == 'makestep') {
 				$s=10;
 				continue;
 			}

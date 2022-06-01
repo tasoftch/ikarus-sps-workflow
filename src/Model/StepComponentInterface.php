@@ -80,4 +80,16 @@ interface StepComponentInterface
 	 * @return int
 	 */
 	public function getOptions(): int;
+
+	/**
+	 * Generates the step configured to the user data.
+	 *
+	 * If you want to use compilers to create steps, this method must not relate to the component itself.
+	 *
+	 * @param StepData|null $userData
+	 * @param string $stepName
+	 * @param int $step
+	 * @return StepInterface|StepGeneratorInterface
+	 */
+	public function makeStep(?StepData $userData, string $stepName, int $step);
 }
