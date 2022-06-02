@@ -61,6 +61,7 @@ class SingleStaticWorkflowProvider implements WorkflowProviderInterface
 		$name = $this->getWorkflow()->getName();
 		$options = $this->getWorkflow()->getOptions();
 		$design = $this->getWorkflow();
+		yield $design;
 	}
 
 	/**

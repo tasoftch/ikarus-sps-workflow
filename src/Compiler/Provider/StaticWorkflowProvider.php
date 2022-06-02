@@ -85,7 +85,10 @@ class StaticWorkflowProvider implements WorkflowProviderInterface
 	 */
 	public function yieldWorkflow(&$name, &$design, &$options)
 	{
-		foreach($this->workflows as $workflow)
+		foreach($this->workflows as $workflow) {
 			list($design, $name, $options) = $workflow;
+			yield $workflow;
+		}
+
 	}
 }
