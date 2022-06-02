@@ -38,13 +38,36 @@ namespace Ikarus\SPS\Workflow\Compiler\Provider;
 use Generator;
 use Ikarus\SPS\Workflow\Compiler\Design\WorkflowDesignInterface;
 
-interface WorkflowProviderInterface
+class SingleStaticWorkflowProvider implements WorkflowProviderInterface
 {
+	/** @var WorkflowDesignInterface */
+	private $workflow;
+
 	/**
-	 * @param string $name
-	 * @param scalar|WorkflowDesignInterface $design
-	 * @param int $options
-	 * @return Generator
+	 * SingleWorkflowProvider constructor.
+	 * @param WorkflowDesignInterface $workflow
 	 */
-	public function yieldWorkflow(&$name, &$design, &$options);
+	public function __construct(WorkflowDesignInterface $workflow)
+	{
+		$this->workflow = $workflow;
+	}
+
+
+	/**
+	 * @inheritDoc
+	 */
+	public function yieldWorkflow(&$name, &$design, &$options)
+	{
+		$name = $this->getWorkflow()->getName();
+		$options = $this->getWorkflow()->getOptions();
+		$design = $this->getWorkflow();
+	}
+
+	/**
+	 * @return WorkflowDesignInterface
+	 */
+	public function getWorkflow(): WorkflowDesignInterface
+	{
+		return $this->workflow;
+	}
 }

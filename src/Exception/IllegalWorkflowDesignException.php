@@ -32,19 +32,28 @@
  *
  */
 
-namespace Ikarus\SPS\Workflow\Compiler\Provider;
+namespace Ikarus\SPS\Workflow\Exception;
 
 
-use Generator;
-use Ikarus\SPS\Workflow\Compiler\Design\WorkflowDesignInterface;
-
-interface WorkflowProviderInterface
+class IllegalWorkflowDesignException extends CompilationException
 {
+	private $workflowDesign;
+
 	/**
-	 * @param string $name
-	 * @param scalar|WorkflowDesignInterface $design
-	 * @param int $options
-	 * @return Generator
+	 * @return mixed
 	 */
-	public function yieldWorkflow(&$name, &$design, &$options);
+	public function getWorkflowDesign()
+	{
+		return $this->workflowDesign;
+	}
+
+	/**
+	 * @param mixed $workflowDesign
+	 * @return IllegalWorkflowDesignException
+	 */
+	public function setWorkflowDesign($workflowDesign)
+	{
+		$this->workflowDesign = $workflowDesign;
+		return $this;
+	}
 }

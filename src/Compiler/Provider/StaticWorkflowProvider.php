@@ -37,14 +37,55 @@ namespace Ikarus\SPS\Workflow\Compiler\Provider;
 
 use Generator;
 use Ikarus\SPS\Workflow\Compiler\Design\WorkflowDesignInterface;
+use Ikarus\SPS\Workflow\Exception\IllegalWorkflowDesignException;
 
-interface WorkflowProviderInterface
+class StaticWorkflowProvider implements WorkflowProviderInterface
 {
+	/** @var WorkflowDesignInterface|scalar[] */
+	private $workflows = [];
+
 	/**
-	 * @param string $name
-	 * @param scalar|WorkflowDesignInterface $design
-	 * @param int $options
-	 * @return Generator
+	 * StaticWorkflowProvider constructor.
+	 * @param WorkflowDesignInterface[] $workflows
 	 */
-	public function yieldWorkflow(&$name, &$design, &$options);
+	public function __construct(... $workflows)
+	{
+		$this->addWorkflows($workflows);
+	}
+
+	public function addWorkflows(array $workflows) {
+		foreach($workflows as $workflow)
+			$this->addWorkflow($workflow);
+	}
+
+	public function addWorkflow($workflow, string $name = NULL, int $options = NULL) {
+		if(NULL === $name) {
+			if(is_object($workflow) && method_exists($workflow, 'getname'))
+				$name = $workflow->getName();
+			elseif(is_array($workflow) && isset($workflow['name']))
+				$name = $workflow['name'];
+			else
+				throw (new IllegalWorkflowDesignException("No name detected from design"))->setWorkflowDesign($workflow);
+		}
+
+		if(NULL === $options) {
+			if(is_object($workflow) && method_exists($workflow, 'getoptions'))
+				$options = $workflow->getOptions();
+			elseif(is_array($workflow) && isset($workflow['options']))
+				$options = $workflow['options'];
+			else
+				throw (new IllegalWorkflowDesignException("No options detected from design"))->setWorkflowDesign($workflow);
+		}
+
+		$this->workflows[] = [$workflow, $name, $options];
+	}
+
+	/**
+	 * @inheritDoc
+	 */
+	public function yieldWorkflow(&$name, &$design, &$options)
+	{
+		foreach($this->workflows as $workflow)
+			list($design, $name, $options) = $workflow;
+	}
 }

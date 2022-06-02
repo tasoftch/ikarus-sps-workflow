@@ -37,9 +37,11 @@ namespace Ikarus\SPS\Workflow\Compiler;
 
 use Ikarus\SPS\Workflow\Compiler\Design\Parser\WorkflowDesignParserInterface;
 use Ikarus\SPS\Workflow\Compiler\Design\StepDesignInterface;
+use Ikarus\SPS\Workflow\Compiler\Design\WorkflowDesignInterface;
 use Ikarus\SPS\Workflow\Compiler\Provider\StepComponentProviderInterface;
 use Ikarus\SPS\Workflow\Compiler\Provider\WorkflowProviderInterface;
 use Ikarus\SPS\Workflow\Exception\ComponentNotFoundException;
+use Ikarus\SPS\Workflow\Exception\IllegalWorkflowDesignException;
 use Ikarus\SPS\Workflow\Model\StepComponentInterface;
 
 abstract class AbstractWorkflowCompiler implements WorkflowCompilerInterface
@@ -113,7 +115,10 @@ abstract class AbstractWorkflowCompiler implements WorkflowCompilerInterface
 
 		$workflows = [];
 		foreach($provider->yieldWorkflow($name, $design, $options) as $r) {
-			$design = $this->getDesignParser()->parseDesign($design, $name, $options);
+			if(! $design instanceof WorkflowDesignInterface)
+				$design = $this->getDesignParser()->parseDesign($design, $name, $options);
+			if(! $design instanceof WorkflowDesignInterface)
+				throw (new IllegalWorkflowDesignException("Illegal workflow design"))->setWorkflowDesign($design);
 
 			$steps = [];
 			foreach($design->getSteps() as $step) {
