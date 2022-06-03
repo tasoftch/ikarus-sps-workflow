@@ -48,5 +48,5 @@ interface PrecompilerContextInterface
 	 * @param $message
 	 * @param $stepNumber
 	 */
-	public function addProblem($level, $code, $message, $stepNumber);
+	public function addProblem($level, $code, $message, $stepNumber = -1);
 }

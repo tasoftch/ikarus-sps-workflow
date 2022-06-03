@@ -34,24 +34,54 @@
 
 namespace Ikarus\SPS\Workflow\Compiler;
 
-
+use Ikarus\SPS\Workflow\Compiler\Design\StepDesignInterface;
 use Ikarus\SPS\Workflow\Compiler\Provider\WorkflowProviderInterface;
+use Ikarus\SPS\Workflow\Context\PrecompilerContextInterface;
+use Ikarus\SPS\Workflow\Exception\ClassImportAliasConflictException;
+use Ikarus\SPS\Workflow\Model\StepComponentCompilableInterface;
+use Ikarus\SPS\Workflow\Model\StepComponentInterface;
+use Ikarus\SPS\Workflow\Model\StepComponentPrecompilerInterface;
 
-class WorkflowPrecompiler extends AbstractWorkflowCompiler
+class WorkflowPrecompiler extends AbstractWorkflowCompiler implements PrecompilerContextInterface
 {
 	/** @var array */
 	private $problems = [];
 	private $problemCount = 0;
 	private $ignoreWeakProblems = false;
+	private $succeeded = true;
+
+	private $classes = [];
+
+	/** @var bool  */
+	private $compilable = true;
+
+	/**
+	 * @return bool
+	 */
+	public function isCompilable(): bool
+	{
+		return $this->compilable;
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function isSucceeded(): bool
+	{
+		return $this->succeeded;
+	}
 
 	private $currentStepCompilation;
 
-	public function addProblem($level, $code, $message, $nodeID)
+	public function addProblem($level, $code, $message, $stepID = -1)
 	{
 		$this->problemCount++;
 		$this->problems[] = [
-			$level, $code ? $code : $this->problemCount, $message, $nodeID == -1 ? $this->currentStepCompilation : $nodeID
+			$level, $code ? $code : $this->problemCount, $message, $stepID == -1 ? $this->currentStepCompilation : $stepID
 		];
+
+		if($level >= self::PROBLEM_LEVEL_ERROR)
+			$this->succeeded = false;
 
 		usort($this->problems, function($a,$b) {
 			$c = $b[0] <=> $a[0];
@@ -73,15 +103,40 @@ class WorkflowPrecompiler extends AbstractWorkflowCompiler
 		return $this->currentStepCompilation;
 	}
 
+	protected function inspectStepComponent(StepComponentInterface $component, StepDesignInterface $forStep)
+	{
+		parent::inspectStepComponent($component, $forStep);
+
+		if(!$component instanceof StepComponentCompilableInterface)
+			$this->compilable = false;
+		else {
+			foreach($component->getRequiredClasses() as $class => $alias) {
+				if(is_numeric($class) && is_string($alias)) {
+					$class = $alias;
+					$alias = NULL;
+				}
+				$this->addRequiredClass($class, $alias);
+			}
+		}
+
+		if($component instanceof StepComponentPrecompilerInterface) {
+			$this->currentStepCompilation = $forStep->getStep();
+
+			if(!$component->precompile($this, $forStep->getStepData()))
+				$this->addProblem(3, 14, sprintf("Component %s did not accept step data from %s", $component->getComponentName(), $forStep->getName()), $forStep->getStep());
+		}
+	}
+
 	/**
 	 * @param WorkflowProviderInterface $provider
 	 */
 	public function compile(WorkflowProviderInterface $provider) {
 		try {
-			$workflows = $this->prepareFromProvider($provider);
-			print_r($workflows);
-
+			$this->compilable = true;
+			$this->succeeded = true;
+			$this->prepareFromProvider($provider);
 		} catch (\Throwable $throwable) {
+			$this->succeeded = false;
 			$this->addProblemAsException($throwable);
 		} finally {
 			if($this->ignoreWeakProblems() && $this->problems && $this->problems[0][0] < 3)
@@ -113,5 +168,30 @@ class WorkflowPrecompiler extends AbstractWorkflowCompiler
 	{
 		$this->ignoreWeakProblems = $ignoreWeakProblems;
 		return $this;
+	}
+
+	private function _parseClassName($className) {
+		$cn = explode("\\", $className);
+		return array_pop($cn);
+	}
+
+	protected function addRequiredClass(string $className, string $alias = NULL)
+	{
+		if(!$alias)
+			$alias = $this->_parseClassName($className);
+
+		if(!isset($this->classes[$className])) {
+			$this->classes[$className] = $alias;
+		} elseif(($cn = $this->classes[$className]) != $alias) {
+			throw (new ClassImportAliasConflictException("$className conflicts using alias $alias and $cn"))->setAlias($cn)->setClassName($className);
+		}
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getClasses(): array
+	{
+		return $this->classes;
 	}
 }

@@ -34,20 +34,17 @@
 
 namespace Ikarus\SPS\Workflow\Compiler;
 
-
-use Ikarus\SPS\Workflow\Compiler\Design\StepDesignInterface;
 use Ikarus\SPS\Workflow\Compiler\Provider\WorkflowProviderInterface;
 use Ikarus\SPS\Workflow\Context\StepData;
 use Ikarus\SPS\Workflow\Model\StepComponentInterface;
 use ReflectionException;
-use ReflectionFunction;
 
 abstract class AbstractExternalWorkflowCompiler extends AbstractWorkflowCompiler
 {
 	private $canCompileExternal = true;
 
 	protected $classImports = [
-		StepData::class => 'NodeData',
+		StepData::class,
 	];
 
 	/**
@@ -76,9 +73,13 @@ abstract class AbstractExternalWorkflowCompiler extends AbstractWorkflowCompiler
 	protected function stringifyClassImports(): string {
 		$contents = "";
 		foreach($this->classImports as $class => $alias) {
+			if(is_numeric($class) && is_string($alias)) {
+				$class = $alias;
+				$alias = 0;
+			}
 			$cn = explode("\\", $class);
 			$cn = array_pop($cn);
-			if($alias == $cn)
+			if($alias == $cn || !$alias)
 				$contents .= "use $class;\n";
 			else
 				$contents .= "use $class as $alias;\n";
@@ -99,9 +100,10 @@ abstract class AbstractExternalWorkflowCompiler extends AbstractWorkflowCompiler
 	 * @param StepComponentInterface $component
 	 * @return string|null
 	 */
-	protected function exportExternalCodeForComponent(StepComponentInterface $component): ?string {
+	protected function exportExternalCodeForComponent(StepComponentInterface $component, $methodName, bool $strip_whitespace = false): ?string {
 		try {
-			$ref = new \ReflectionClass( get_class($component) );
+			$cl = $component->getExecutable(NULL, "", 0);
+			$ref = new \ReflectionFunction( $cl );
 		} catch (ReflectionException $e) {
 			trigger_error($e->getMessage(), E_USER_WARNING);
 			return NULL;
@@ -121,6 +123,12 @@ abstract class AbstractExternalWorkflowCompiler extends AbstractWorkflowCompiler
 				if($c == 0)
 					break;
 
+				if($strip_whitespace) {
+					if($token[0] == T_COMMENT || $token[0] == T_DOC_COMMENT  || $token[0] == T_WHITESPACE) {
+						$captured .= " ";
+						continue;
+					}
+				}
 				$captured.= is_array($token) ? $token[1] : $token;
 			}
 
@@ -137,9 +145,12 @@ abstract class AbstractExternalWorkflowCompiler extends AbstractWorkflowCompiler
 				continue;
 			}
 
-			if($s == 2 && $token[0] == T_STRING && strtolower($token[1]) == 'makestep') {
-				$s=10;
-				continue;
+			if($s == 2) {
+				if($token[0] == T_STRING && strtolower($token[1]) == strtolower($methodName)) {
+					$s=10;
+					continue;
+				} else
+					$s = 0;
 			}
 
 			if($s == 10 && $token[0] == T_RETURN) {

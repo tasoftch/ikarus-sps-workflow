@@ -32,21 +32,50 @@
  *
  */
 
-namespace Ikarus\SPS\Workflow\Model;
+namespace Ikarus\SPS\Workflow\Exception;
 
 
-use Ikarus\SPS\Workflow\Context\PrecompilerContextInterface;
-use Ikarus\SPS\Workflow\Context\StepData;
-
-interface StepComponentPrecompilerInterface
+class ClassImportAliasConflictException extends CompilationException
 {
+	/** @var string */
+	private $className;
+
+	/** @var string */
+	private $alias;
+
 	/**
-	 * @param PrecompilerContextInterface $context
-	 * @param StepData|null $userUserData
-	 * @return bool
+	 * @return string
 	 */
-	public function precompile(
-		PrecompilerContextInterface $context,
-		?StepData $userUserData
-	): bool;
+	public function getClassName(): string
+	{
+		return $this->className;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getAlias(): string
+	{
+		return $this->alias;
+	}
+
+	/**
+	 * @param string $className
+	 * @return ClassImportAliasConflictException
+	 */
+	public function setClassName(string $className): ClassImportAliasConflictException
+	{
+		$this->className = $className;
+		return $this;
+	}
+
+	/**
+	 * @param string $alias
+	 * @return ClassImportAliasConflictException
+	 */
+	public function setAlias(string $alias): ClassImportAliasConflictException
+	{
+		$this->alias = $alias;
+		return $this;
+	}
 }

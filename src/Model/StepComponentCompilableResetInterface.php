@@ -35,18 +35,15 @@
 namespace Ikarus\SPS\Workflow\Model;
 
 
-use Ikarus\SPS\Workflow\Context\PrecompilerContextInterface;
 use Ikarus\SPS\Workflow\Context\StepData;
 
-interface StepComponentPrecompilerInterface
+interface StepComponentCompilableResetInterface
 {
 	/**
-	 * @param PrecompilerContextInterface $context
-	 * @param StepData|null $userUserData
-	 * @return bool
+	 * Returns a closure that needs to be performed on workflow reset.
+	 *
+	 * @param StepData|null $stepData
+	 * @return \Closure
 	 */
-	public function precompile(
-		PrecompilerContextInterface $context,
-		?StepData $userUserData
-	): bool;
+	public function getResetExecutable(?StepData $stepData): \Closure;
 }

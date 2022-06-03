@@ -32,12 +32,28 @@
  *
  */
 
-namespace Ikarus\SPS\Workflow\Compiler;
+namespace Ikarus\SPS\Workflow\Model;
 
 
 use Ikarus\SPS\Workflow\Context\StepData;
 
-interface CompiledStepComponentExecutableSignatureInterface
+interface StepComponentCompilableInterface
 {
-	public function __invoke(int $options, StepData $userData);
+	/**
+	 * Returns an independent function that is able to handle the steps purpose without knowing its step.
+	 * This closure gets involved with any step that refers to this component using its custom step data object.
+	 *
+	 * Please note that the arguments $userData, $stepName and $step can be imported into the closure
+	 *
+	 * @return \Closure
+	 */
+	public function getExecutable(?StepData $userData, string $stepName, int $step): \Closure ;
+
+	/**
+	 * Returns a list of required classes
+	 * array('My\Full\ClassName' => 'MyUsedAlias', # or #  'Another\ClassName')
+	 *
+	 * @return string[]|null
+	 */
+	public function getRequiredClasses(): ?array;
 }
