@@ -75,11 +75,6 @@ interface StepComponentInterface
 	public function getDescription(): ?string;
 
 	/**
-	 * @return string|null
-	 */
-	public function getGroupName(): ?string;
-
-	/**
 	 * Options for this component
 	 *
 	 * @return int
