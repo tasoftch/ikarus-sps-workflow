@@ -40,6 +40,7 @@ abstract class AbstractStepComponent implements StepComponentInterface
 	private $label;
 	private $description;
 	private $options = 0;
+	private $groupName;
 
 	/**
 	 * AbstractStepComponent constructor.
@@ -53,6 +54,8 @@ abstract class AbstractStepComponent implements StepComponentInterface
 		foreach($items as $item) {
 			if($item instanceof Description)
 				$this->description = $item->getName();
+			elseif($item instanceof Group)
+				$this->groupName = $item->getName();
 			elseif($item instanceof Label)
 				$this->label = $item->getName();
 			elseif($item instanceof Option)
@@ -90,5 +93,13 @@ abstract class AbstractStepComponent implements StepComponentInterface
 	public function getOptions(): int
 	{
 		return $this->options;
+	}
+
+	/**
+	 * @inheritDoc
+	 */
+	public function getGroupName(): ?string
+	{
+		return $this->groupName;
 	}
 }
