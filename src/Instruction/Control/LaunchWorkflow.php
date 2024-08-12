@@ -31,62 +31,33 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-namespace Ikarus\SPS\Workflow;
+namespace Ikarus\SPS\Workflow\Instruction\Control;
 
 use Ikarus\SPS\Register\MemoryRegisterInterface;
-use Ikarus\SPS\Workflow\Instruction\InstructionInterface;
+use Ikarus\SPS\Workflow\AbstractWorkflow;
+use Ikarus\SPS\Workflow\Exception\WorkflowException;
+use Ikarus\SPS\Workflow\Instruction\AbstractInstruction;
 
-interface WorkflowInterface
+/**
+ * Launches a registered workflow.
+ *
+ * Please note: The workflow needs to be managed by another task.
+ * The instruction only activates the workflow if it's not yet.
+ *
+ * @see AbstractWorkflow::registerWorkflow()
+ */
+class LaunchWorkflow extends AbstractWorkflowInstruction
 {
 	/**
-	 * Makes the workflow being active
-	 *
-	 * @return void
+	 * @inheritDoc
 	 */
-	public function enable();
-
-	/**
-	 * Disables the workflow
-	 *
-	 * @return void
-	 */
-	public function disable();
-
-	/**
-	 * Returning true will cause a process() call to handle the instructions.
-	 *
-	 * @return bool
-	 */
-	public function hasPendingInstructions(): bool;
-
-	/**
-	 * Processes all pending instructions
-	 *
-	 * @param MemoryRegisterInterface $register
-	 * @return void
-	 */
-	public function process(MemoryRegisterInterface $register);
-
-	/**
-	 * OM, OFF or ERROR status
-	 *
-	 * @see MemoryRegisterInterface
-	 * @return int
-	 */
-	public function getStatus(): int;
-
-	/**
-	 * @return int
-	 */
-	public function getInstructionsCount(): int;
-
-	/**
-	 * @return int
-	 */
-	public function getCurrentInstructionNumber(): int;
-
-	/**
-	 * @return string|null
-	 */
-	public function getCurrentInstructionName(): ?string;
+	public function process(MemoryRegisterInterface $register): int
+	{
+		if($wf = AbstractWorkflow::getWorkflowByName( $this->getName() )) {
+			$wf->enable();
+		} elseif($this->raiseIfNotFound()) {
+			throw new WorkflowException("Unregistered workflow %s called", 0, NULL, $this->getName());
+		}
+		return self::PROCESS_RESULT_SUCCESS;
+	}
 }

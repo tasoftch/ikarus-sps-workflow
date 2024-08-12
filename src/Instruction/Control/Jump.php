@@ -31,62 +31,34 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-namespace Ikarus\SPS\Workflow;
+namespace Ikarus\SPS\Workflow\Instruction\Control;
 
 use Ikarus\SPS\Register\MemoryRegisterInterface;
-use Ikarus\SPS\Workflow\Instruction\InstructionInterface;
+use Ikarus\SPS\Workflow\Instruction\AbstractInstruction;
 
-interface WorkflowInterface
+class Jump extends AbstractInstruction
 {
-	/**
-	 * Makes the workflow being active
-	 *
-	 * @return void
-	 */
-	public function enable();
+	/** @var string */
+	private $label;
 
 	/**
-	 * Disables the workflow
-	 *
-	 * @return void
+	 * @param string $label
 	 */
-	public function disable();
+	public function __construct(string $label)
+	{
+		$this->label = $label;
+	}
 
 	/**
-	 * Returning true will cause a process() call to handle the instructions.
-	 *
-	 * @return bool
+	 * @inheritDoc
 	 */
-	public function hasPendingInstructions(): bool;
+	public function process(MemoryRegisterInterface $register): int
+	{
+		return self::PROCESS_RESULT_CONTINUE_IMMEDIATELY;
+	}
 
-	/**
-	 * Processes all pending instructions
-	 *
-	 * @param MemoryRegisterInterface $register
-	 * @return void
-	 */
-	public function process(MemoryRegisterInterface $register);
-
-	/**
-	 * OM, OFF or ERROR status
-	 *
-	 * @see MemoryRegisterInterface
-	 * @return int
-	 */
-	public function getStatus(): int;
-
-	/**
-	 * @return int
-	 */
-	public function getInstructionsCount(): int;
-
-	/**
-	 * @return int
-	 */
-	public function getCurrentInstructionNumber(): int;
-
-	/**
-	 * @return string|null
-	 */
-	public function getCurrentInstructionName(): ?string;
+	public function getLabel(): string
+	{
+		return $this->label;
+	}
 }

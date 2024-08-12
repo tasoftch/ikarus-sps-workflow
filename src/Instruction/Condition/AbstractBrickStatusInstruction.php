@@ -31,62 +31,35 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-namespace Ikarus\SPS\Workflow;
+namespace Ikarus\SPS\Workflow\Instruction\Condition;
 
-use Ikarus\SPS\Register\MemoryRegisterInterface;
-use Ikarus\SPS\Workflow\Instruction\InstructionInterface;
-
-interface WorkflowInterface
+abstract class AbstractBrickStatusInstruction implements ConditionInterface
 {
-	/**
-	 * Makes the workflow being active
-	 *
-	 * @return void
-	 */
-	public function enable();
+	/** @var string */
+	private $brick;
+	/** @var int|callable */
+	private $status;
 
 	/**
-	 * Disables the workflow
-	 *
-	 * @return void
+	 * @param string $brick
+	 * @param callable|int $status
 	 */
-	public function disable();
+	public function __construct(string $brick, $status)
+	{
+		$this->brick = $brick;
+		$this->status = $status;
+	}
 
-	/**
-	 * Returning true will cause a process() call to handle the instructions.
-	 *
-	 * @return bool
-	 */
-	public function hasPendingInstructions(): bool;
+	public function getBrick(): string
+	{
+		return $this->brick;
+	}
 
-	/**
-	 * Processes all pending instructions
-	 *
-	 * @param MemoryRegisterInterface $register
-	 * @return void
-	 */
-	public function process(MemoryRegisterInterface $register);
-
-	/**
-	 * OM, OFF or ERROR status
-	 *
-	 * @see MemoryRegisterInterface
-	 * @return int
-	 */
-	public function getStatus(): int;
-
-	/**
-	 * @return int
-	 */
-	public function getInstructionsCount(): int;
-
-	/**
-	 * @return int
-	 */
-	public function getCurrentInstructionNumber(): int;
-
-	/**
-	 * @return string|null
-	 */
-	public function getCurrentInstructionName(): ?string;
+	protected function getStatus(): int {
+		if(is_callable($this->status))
+			$st = ($this->status)();
+		else
+			$st = (int) $this->status;
+		return $st;
+	}
 }

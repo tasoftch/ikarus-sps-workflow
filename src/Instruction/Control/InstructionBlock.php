@@ -31,62 +31,50 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-namespace Ikarus\SPS\Workflow;
+namespace Ikarus\SPS\Workflow\Instruction\Control;
 
 use Ikarus\SPS\Register\MemoryRegisterInterface;
+use Ikarus\SPS\Workflow\Instruction\AbstractInstruction;
 use Ikarus\SPS\Workflow\Instruction\InstructionInterface;
+use Ikarus\SPS\Workflow\Instruction\MutableInstructionInterface;
 
-interface WorkflowInterface
+class InstructionBlock extends AbstractInstruction
 {
-	/**
-	 * Makes the workflow being active
-	 *
-	 * @return void
-	 */
-	public function enable();
+	/** @var InstructionInterface[] */
+	private $instructions = [];
+	/** @var MutableInstructionInterface|null */
+	private $lastInstruction;
+
+	public function __construct(...$instructions)
+	{
+		foreach($instructions as $instruction) {
+			if($instruction instanceof InstructionInterface)
+				$this->instructions[] = $instruction;
+
+			if($this->lastInstruction instanceof MutableInstructionInterface) {
+				$this->lastInstruction->setNextInstruction($instruction);
+			}
+
+			$this->lastInstruction = $instruction;
+		}
+	}
 
 	/**
-	 * Disables the workflow
-	 *
-	 * @return void
+	 * @inheritDoc
 	 */
-	public function disable();
+	public function process(MemoryRegisterInterface $register): int
+	{
+		return self::PROCESS_RESULT_CONTINUE_IMMEDIATELY;
+	}
 
-	/**
-	 * Returning true will cause a process() call to handle the instructions.
-	 *
-	 * @return bool
-	 */
-	public function hasPendingInstructions(): bool;
+	public function getNextInstruction(): ?InstructionInterface
+	{
+		return reset($this->instructions);
+	}
 
-	/**
-	 * Processes all pending instructions
-	 *
-	 * @param MemoryRegisterInterface $register
-	 * @return void
-	 */
-	public function process(MemoryRegisterInterface $register);
-
-	/**
-	 * OM, OFF or ERROR status
-	 *
-	 * @see MemoryRegisterInterface
-	 * @return int
-	 */
-	public function getStatus(): int;
-
-	/**
-	 * @return int
-	 */
-	public function getInstructionsCount(): int;
-
-	/**
-	 * @return int
-	 */
-	public function getCurrentInstructionNumber(): int;
-
-	/**
-	 * @return string|null
-	 */
-	public function getCurrentInstructionName(): ?string;
+	public function setNextInstruction(InstructionInterface $instruction)
+	{
+		if($this->lastInstruction instanceof MutableInstructionInterface)
+			$this->lastInstruction->setNextInstruction($instruction);
+	}
 }

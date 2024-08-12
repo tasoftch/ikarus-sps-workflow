@@ -31,62 +31,30 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-namespace Ikarus\SPS\Workflow;
+namespace Ikarus\SPS\Workflow\Instruction\Condition;
 
 use Ikarus\SPS\Register\MemoryRegisterInterface;
-use Ikarus\SPS\Workflow\Instruction\InstructionInterface;
 
-interface WorkflowInterface
+class CommandExistsCondition implements ConditionInterface
 {
-	/**
-	 * Makes the workflow being active
-	 *
-	 * @return void
-	 */
-	public function enable();
+	/** @var string|callable */
+	private $command;
 
 	/**
-	 * Disables the workflow
-	 *
-	 * @return void
+	 * @param callable|string $command
 	 */
-	public function disable();
+	public function __construct($command)
+	{
+		$this->command = $command;
+	}
 
-	/**
-	 * Returning true will cause a process() call to handle the instructions.
-	 *
-	 * @return bool
-	 */
-	public function hasPendingInstructions(): bool;
+	public function process(MemoryRegisterInterface $register): bool
+	{
+		if(is_callable($this->command))
+			$cmd = ($this->command)($register);
+		else
+			$cmd = (string) $this->command;
 
-	/**
-	 * Processes all pending instructions
-	 *
-	 * @param MemoryRegisterInterface $register
-	 * @return void
-	 */
-	public function process(MemoryRegisterInterface $register);
-
-	/**
-	 * OM, OFF or ERROR status
-	 *
-	 * @see MemoryRegisterInterface
-	 * @return int
-	 */
-	public function getStatus(): int;
-
-	/**
-	 * @return int
-	 */
-	public function getInstructionsCount(): int;
-
-	/**
-	 * @return int
-	 */
-	public function getCurrentInstructionNumber(): int;
-
-	/**
-	 * @return string|null
-	 */
-	public function getCurrentInstructionName(): ?string;
+		return $register->hasCommand($cmd);
+	}
 }

@@ -31,62 +31,36 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-namespace Ikarus\SPS\Workflow;
+namespace Ikarus\SPS\Workflow\Instruction\Debug;
 
 use Ikarus\SPS\Register\MemoryRegisterInterface;
-use Ikarus\SPS\Workflow\Instruction\InstructionInterface;
+use Ikarus\SPS\Workflow\Instruction\AbstractInstruction;
 
-interface WorkflowInterface
+class ConsoleLogInstruction extends AbstractInstruction
 {
-	/**
-	 * Makes the workflow being active
-	 *
-	 * @return void
-	 */
-	public function enable();
+	private $message;
 
 	/**
-	 * Disables the workflow
-	 *
-	 * @return void
+	 * @param string|callable $message
 	 */
-	public function disable();
+	public function __construct($message)
+	{
+		$this->message = $message;
+	}
+
 
 	/**
-	 * Returning true will cause a process() call to handle the instructions.
-	 *
-	 * @return bool
+	 * @inheritDoc
 	 */
-	public function hasPendingInstructions(): bool;
+	public function process(MemoryRegisterInterface $register): int
+	{
+		if(is_callable($this->message))
+			$msg = ($this->message)($register);
+		else
+			$msg = (string) $this->message;
 
-	/**
-	 * Processes all pending instructions
-	 *
-	 * @param MemoryRegisterInterface $register
-	 * @return void
-	 */
-	public function process(MemoryRegisterInterface $register);
+		echo $msg;
 
-	/**
-	 * OM, OFF or ERROR status
-	 *
-	 * @see MemoryRegisterInterface
-	 * @return int
-	 */
-	public function getStatus(): int;
-
-	/**
-	 * @return int
-	 */
-	public function getInstructionsCount(): int;
-
-	/**
-	 * @return int
-	 */
-	public function getCurrentInstructionNumber(): int;
-
-	/**
-	 * @return string|null
-	 */
-	public function getCurrentInstructionName(): ?string;
+		return self::PROCESS_RESULT_CONTINUE_IMMEDIATELY;
+	}
 }

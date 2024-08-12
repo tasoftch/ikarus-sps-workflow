@@ -31,62 +31,24 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-namespace Ikarus\SPS\Workflow;
+namespace Ikarus\SPS\Workflow\Exception;
 
-use Ikarus\SPS\Register\MemoryRegisterInterface;
+use Ikarus\SPS\Workflow\Exception\WorkflowException;
 use Ikarus\SPS\Workflow\Instruction\InstructionInterface;
 
-interface WorkflowInterface
+class DuplicateInstructionException extends WorkflowException
 {
-	/**
-	 * Makes the workflow being active
-	 *
-	 * @return void
-	 */
-	public function enable();
+	/** @var InstructionInterface */
+	private $instruction;
 
-	/**
-	 * Disables the workflow
-	 *
-	 * @return void
-	 */
-	public function disable();
+	public function getInstruction(): InstructionInterface
+	{
+		return $this->instruction;
+	}
 
-	/**
-	 * Returning true will cause a process() call to handle the instructions.
-	 *
-	 * @return bool
-	 */
-	public function hasPendingInstructions(): bool;
-
-	/**
-	 * Processes all pending instructions
-	 *
-	 * @param MemoryRegisterInterface $register
-	 * @return void
-	 */
-	public function process(MemoryRegisterInterface $register);
-
-	/**
-	 * OM, OFF or ERROR status
-	 *
-	 * @see MemoryRegisterInterface
-	 * @return int
-	 */
-	public function getStatus(): int;
-
-	/**
-	 * @return int
-	 */
-	public function getInstructionsCount(): int;
-
-	/**
-	 * @return int
-	 */
-	public function getCurrentInstructionNumber(): int;
-
-	/**
-	 * @return string|null
-	 */
-	public function getCurrentInstructionName(): ?string;
+	public function setInstruction(InstructionInterface $instruction): DuplicateInstructionException
+	{
+		$this->instruction = $instruction;
+		return $this;
+	}
 }

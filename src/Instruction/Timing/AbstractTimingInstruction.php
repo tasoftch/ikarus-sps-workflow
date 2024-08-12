@@ -2,7 +2,7 @@
 /*
  * BSD 3-Clause License
  *
- * Copyright (c) 2022, TASoft Applications
+ * Copyright (c) 2024, TASoft Applications
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,67 +29,59 @@
  * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
 
-namespace Context;
+namespace Ikarus\SPS\Workflow\Instruction\Timing;
 
-use Ikarus\SPS\Workflow\Context\Timer;
-use PHPUnit\Framework\TestCase;
+use Ikarus\SPS\Register\MemoryRegisterInterface;
+use Ikarus\SPS\Tool\Timing\Timer;
+use Ikarus\SPS\Workflow\Instruction\AbstractInstruction;
 
-class TimerTest extends TestCase
+abstract class AbstractTimingInstruction extends AbstractInstruction
 {
-	public function testNullTimer() {
-		$tm = new Timer();
+	/** @var Timer */
+	protected $timer;
 
-		$this->assertTrue($tm->isTimeUp());
+	/**
+	 * @param Timer $timer
+	 */
+	public function __construct(Timer $timer)
+	{
+		$this->timer = $timer;
 	}
 
-	public function testMicroTimer() {
-		$tm = new Timer(100, Timer::TIMER_UNIT_MICRO_SECONDS);
-		$this->assertFalse($tm->isTimeUp());
-		usleep(100);
-		$this->assertTrue($tm->isTimeUp());
+	public function reset()
+	{
+		$this->timer->reset();
 	}
 
-	public function testMillitimer() {
-		$tm = new Timer(100, Timer::TIMER_UNIT_MILLI_SECONDS);
-		$this->assertFalse($tm->isTimeUp());
-		$this->assertFalse($tm->isTimeUp());
-		$this->assertFalse($tm->isTimeUp());
-		$this->assertFalse($tm->isTimeUp());
-		$this->assertFalse($tm->isTimeUp());
-		$this->assertFalse($tm->isTimeUp());
-		$this->assertFalse($tm->isTimeUp());
-		$this->assertFalse($tm->isTimeUp());
-		usleep(100000);
-		$this->assertTrue($tm->isTimeUp());
+	/**
+	 * Timer is waiting
+	 *
+	 * @param MemoryRegisterInterface $register
+	 * @return int
+	 */
+	protected function waitInstruction(MemoryRegisterInterface $register): int {
+		return self::PROCESS_RESULT_REPEAT;
 	}
 
-	public function testSecondTimer() {
-		$tm = new Timer(1);
-		$ms = microtime(true);
-		while ($tm->isTimeUp() == false) {
+	/**
+	 * Time is up
+	 *
+	 * @param MemoryRegisterInterface $register
+	 * @return int
+	 */
+	abstract protected function timerCompletedInstruction(MemoryRegisterInterface $register): int;
+
+	/**
+	 * @inheritDoc
+	 */
+	public function process(MemoryRegisterInterface $register): int
+	{
+		if($this->timer->isTimeUp()) {
+			return $this->timerCompletedInstruction($register);
+		} else {
+			return $this->waitInstruction($register);
 		}
-		$this->assertEquals(1, round(microtime(true) - $ms, 4));
-	}
-
-	public function testInvalidation() {
-		$tm = new Timer(100, Timer::TIMER_UNIT_MILLI_SECONDS);
-		$this->assertFalse($tm->isTimeUp());
-		$this->assertFalse($tm->isTimeUp());
-		$this->assertFalse($tm->isTimeUp());
-		$this->assertFalse($tm->isTimeUp());
-
-		$tm->invalidate();
-
-		$this->assertTrue($tm->isTimeUp());
-
-		$tm->reset();
-
-		$this->assertFalse($tm->isTimeUp());
-		$this->assertFalse($tm->isTimeUp());
-		$this->assertFalse($tm->isTimeUp());
-		$this->assertFalse($tm->isTimeUp());
 	}
 }

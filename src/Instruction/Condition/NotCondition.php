@@ -31,62 +31,31 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-namespace Ikarus\SPS\Workflow;
+namespace Ikarus\SPS\Workflow\Instruction\Condition;
 
 use Ikarus\SPS\Register\MemoryRegisterInterface;
-use Ikarus\SPS\Workflow\Instruction\InstructionInterface;
 
-interface WorkflowInterface
+class NotCondition implements ConditionInterface
 {
-	/**
-	 * Makes the workflow being active
-	 *
-	 * @return void
-	 */
-	public function enable();
+	/** @var ConditionInterface */
+	private $condition;
 
 	/**
-	 * Disables the workflow
-	 *
-	 * @return void
+	 * @param ConditionInterface $condition
 	 */
-	public function disable();
+	public function __construct(ConditionInterface $condition)
+	{
+		$this->condition = $condition;
+	}
 
-	/**
-	 * Returning true will cause a process() call to handle the instructions.
-	 *
-	 * @return bool
-	 */
-	public function hasPendingInstructions(): bool;
+	public function process(MemoryRegisterInterface $register): bool
+	{
+		return ! $this->condition->process($register);
+	}
 
-	/**
-	 * Processes all pending instructions
-	 *
-	 * @param MemoryRegisterInterface $register
-	 * @return void
-	 */
-	public function process(MemoryRegisterInterface $register);
 
-	/**
-	 * OM, OFF or ERROR status
-	 *
-	 * @see MemoryRegisterInterface
-	 * @return int
-	 */
-	public function getStatus(): int;
-
-	/**
-	 * @return int
-	 */
-	public function getInstructionsCount(): int;
-
-	/**
-	 * @return int
-	 */
-	public function getCurrentInstructionNumber(): int;
-
-	/**
-	 * @return string|null
-	 */
-	public function getCurrentInstructionName(): ?string;
+	public function getCondition(): ConditionInterface
+	{
+		return $this->condition;
+	}
 }

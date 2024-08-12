@@ -33,60 +33,18 @@
 
 namespace Ikarus\SPS\Workflow;
 
-use Ikarus\SPS\Register\MemoryRegisterInterface;
 use Ikarus\SPS\Workflow\Instruction\InstructionInterface;
 
-interface WorkflowInterface
+interface FailureDependentWorkflowInterface extends WorkflowInterface
 {
 	/**
-	 * Makes the workflow being active
-	 *
+	 * @return InstructionInterface|null
+	 */
+	public function getFailedInstruction(): ?InstructionInterface;
+
+	/**
+	 * @param InstructionInterface|null $instruction
 	 * @return void
 	 */
-	public function enable();
-
-	/**
-	 * Disables the workflow
-	 *
-	 * @return void
-	 */
-	public function disable();
-
-	/**
-	 * Returning true will cause a process() call to handle the instructions.
-	 *
-	 * @return bool
-	 */
-	public function hasPendingInstructions(): bool;
-
-	/**
-	 * Processes all pending instructions
-	 *
-	 * @param MemoryRegisterInterface $register
-	 * @return void
-	 */
-	public function process(MemoryRegisterInterface $register);
-
-	/**
-	 * OM, OFF or ERROR status
-	 *
-	 * @see MemoryRegisterInterface
-	 * @return int
-	 */
-	public function getStatus(): int;
-
-	/**
-	 * @return int
-	 */
-	public function getInstructionsCount(): int;
-
-	/**
-	 * @return int
-	 */
-	public function getCurrentInstructionNumber(): int;
-
-	/**
-	 * @return string|null
-	 */
-	public function getCurrentInstructionName(): ?string;
+	public function releaseFailureForInstruction(?InstructionInterface $instruction);
 }

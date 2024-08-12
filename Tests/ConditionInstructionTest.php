@@ -31,62 +31,66 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-namespace Ikarus\SPS\Workflow;
+use Ikarus\SPS\Register\InternalMemoryRegister;
+use Ikarus\SPS\Workflow\Instruction\Condition\AllOfCondition;
+use Ikarus\SPS\Workflow\Instruction\Condition\AnyOfCondition;
+use Ikarus\SPS\Workflow\Instruction\Condition\FalseCondition;
+use Ikarus\SPS\Workflow\Instruction\Condition\NotCondition;
+use Ikarus\SPS\Workflow\Instruction\Condition\TrueCondition;
+use PHPUnit\Framework\TestCase;
 
-use Ikarus\SPS\Register\MemoryRegisterInterface;
-use Ikarus\SPS\Workflow\Instruction\InstructionInterface;
-
-interface WorkflowInterface
+class ConditionInstructionTest extends TestCase
 {
-	/**
-	 * Makes the workflow being active
-	 *
-	 * @return void
-	 */
-	public function enable();
+	public function testTrueAndFalseConditions() {
+		$inst = new TrueCondition();
+		$mr = new InternalMemoryRegister();
 
-	/**
-	 * Disables the workflow
-	 *
-	 * @return void
-	 */
-	public function disable();
+		$this->assertTrue($inst->process($mr));
 
-	/**
-	 * Returning true will cause a process() call to handle the instructions.
-	 *
-	 * @return bool
-	 */
-	public function hasPendingInstructions(): bool;
+		$inst = new FalseCondition();
+		$this->assertFalse($inst->process($mr));
 
-	/**
-	 * Processes all pending instructions
-	 *
-	 * @param MemoryRegisterInterface $register
-	 * @return void
-	 */
-	public function process(MemoryRegisterInterface $register);
+		$inst = new NotCondition(new TrueCondition());
+		$this->assertFalse($inst->process($mr));
+	}
 
-	/**
-	 * OM, OFF or ERROR status
-	 *
-	 * @see MemoryRegisterInterface
-	 * @return int
-	 */
-	public function getStatus(): int;
+	public function testCompoundConditions() {
+		$mr = new InternalMemoryRegister();
 
-	/**
-	 * @return int
-	 */
-	public function getInstructionsCount(): int;
+		$any = new AnyOfCondition(
+			new FalseCondition(),
+			new FalseCondition(),
+			new FalseCondition(),
+			new FalseCondition()
+		);
 
-	/**
-	 * @return int
-	 */
-	public function getCurrentInstructionNumber(): int;
+		$this->assertFalse($any->process($mr));
 
-	/**
-	 * @return string|null
-	 */
-	public function getCurrentInstructionName(): ?string;
+		$any = new AnyOfCondition(
+			new FalseCondition(),
+			new FalseCondition(),
+			new FalseCondition(),
+			new FalseCondition(),
+			new TrueCondition()
+		);
+		$this->assertTrue($any->process($mr));
+
+		$all = new AllOfCondition(
+			new TrueCondition(),
+			new TrueCondition(),
+			new TrueCondition(),
+			new TrueCondition()
+		);
+
+		$this->assertTrue($all->process($mr));
+
+		$all = new AllOfCondition(
+			new TrueCondition(),
+			new TrueCondition(),
+			new FalseCondition(),
+			new TrueCondition()
+		);
+
+		$this->assertFalse($all->process($mr));
+	}
 }

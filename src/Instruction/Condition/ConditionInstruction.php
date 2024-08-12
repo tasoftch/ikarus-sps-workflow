@@ -31,62 +31,69 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-namespace Ikarus\SPS\Workflow;
+namespace Ikarus\SPS\Workflow\Instruction\Condition;
 
 use Ikarus\SPS\Register\MemoryRegisterInterface;
+use Ikarus\SPS\Workflow\Instruction\AbstractInstruction;
+use Ikarus\SPS\Workflow\Instruction\AlternatingInstructionInterface;
 use Ikarus\SPS\Workflow\Instruction\InstructionInterface;
 
-interface WorkflowInterface
+class ConditionInstruction extends AbstractInstruction implements AlternatingInstructionInterface
 {
-	/**
-	 * Makes the workflow being active
-	 *
-	 * @return void
-	 */
-	public function enable();
+	/** @var ConditionInterface */
+	private $condition;
+
+	/** @var InstructionInterface|null */
+	private $alternativeInstruction;
+
+	/** @var bool */
+	private $conditionResult;
 
 	/**
-	 * Disables the workflow
-	 *
-	 * @return void
+	 * @param ConditionInterface $condition
+	 * @param InstructionInterface|null $alternativeInstruction
 	 */
-	public function disable();
+	public function __construct(ConditionInterface $condition, InstructionInterface $alternativeInstruction = NULL)
+	{
+		$this->condition = $condition;
+		$this->alternativeInstruction = $alternativeInstruction;
+	}
 
 	/**
-	 * Returning true will cause a process() call to handle the instructions.
-	 *
-	 * @return bool
+	 * @inheritDoc
 	 */
-	public function hasPendingInstructions(): bool;
+	public function process(MemoryRegisterInterface $register): int
+	{
+		$this->conditionResult = $this->condition->process($register);
+		return self::PROCESS_RESULT_CONTINUE_IMMEDIATELY;
+	}
 
-	/**
-	 * Processes all pending instructions
-	 *
-	 * @param MemoryRegisterInterface $register
-	 * @return void
-	 */
-	public function process(MemoryRegisterInterface $register);
+	public function getNextInstruction(): ?InstructionInterface
+	{
+		if($this->getConditionResult())
+			return parent::getNextInstruction();
+		else
+			return $this->getAlternativeInstruction();
+	}
 
-	/**
-	 * OM, OFF or ERROR status
-	 *
-	 * @see MemoryRegisterInterface
-	 * @return int
-	 */
-	public function getStatus(): int;
+	public function getAlternativeInstruction(): ?InstructionInterface
+	{
+		return $this->alternativeInstruction;
+	}
 
-	/**
-	 * @return int
-	 */
-	public function getInstructionsCount(): int;
+	public function setAlternativeInstruction(?InstructionInterface $alternativeInstruction): ConditionInstruction
+	{
+		$this->alternativeInstruction = $alternativeInstruction;
+		return $this;
+	}
 
-	/**
-	 * @return int
-	 */
-	public function getCurrentInstructionNumber(): int;
+	public function getCondition(): ConditionInterface
+	{
+		return $this->condition;
+	}
 
-	/**
-	 * @return string|null
-	 */
-	public function getCurrentInstructionName(): ?string;
+	public function getConditionResult(): bool
+	{
+		return $this->conditionResult;
+	}
 }

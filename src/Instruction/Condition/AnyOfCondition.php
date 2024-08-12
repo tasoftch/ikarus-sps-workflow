@@ -31,62 +31,33 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-namespace Ikarus\SPS\Workflow;
+namespace Ikarus\SPS\Workflow\Instruction\Condition;
 
 use Ikarus\SPS\Register\MemoryRegisterInterface;
-use Ikarus\SPS\Workflow\Instruction\InstructionInterface;
 
-interface WorkflowInterface
+class AnyOfCondition implements ConditionInterface
 {
-	/**
-	 * Makes the workflow being active
-	 *
-	 * @return void
-	 */
-	public function enable();
+	/** @var ConditionInterface[] */
+	private $conditions = [];
 
 	/**
-	 * Disables the workflow
-	 *
-	 * @return void
+	 * @param ConditionInterface[] $conditions
 	 */
-	public function disable();
+	public function __construct(... $conditions)
+	{
+		foreach($conditions as $condition) {
+			if($condition instanceof ConditionInterface)
+				$this->conditions[] = $condition;
+		}
+	}
 
-	/**
-	 * Returning true will cause a process() call to handle the instructions.
-	 *
-	 * @return bool
-	 */
-	public function hasPendingInstructions(): bool;
 
-	/**
-	 * Processes all pending instructions
-	 *
-	 * @param MemoryRegisterInterface $register
-	 * @return void
-	 */
-	public function process(MemoryRegisterInterface $register);
-
-	/**
-	 * OM, OFF or ERROR status
-	 *
-	 * @see MemoryRegisterInterface
-	 * @return int
-	 */
-	public function getStatus(): int;
-
-	/**
-	 * @return int
-	 */
-	public function getInstructionsCount(): int;
-
-	/**
-	 * @return int
-	 */
-	public function getCurrentInstructionNumber(): int;
-
-	/**
-	 * @return string|null
-	 */
-	public function getCurrentInstructionName(): ?string;
+	public function process(MemoryRegisterInterface $register): bool
+	{
+		foreach($this->conditions as $condition) {
+			if($condition->process($register))
+				return true;
+		}
+		return false;
+	}
 }
